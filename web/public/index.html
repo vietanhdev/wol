@@ -1,31 +1,237 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-    <!--
-      Notice the use of %PUBLIC_URL% in the tag above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wake On Lan System</title>
+<style>
+body {font-family: Arial, Helvetica, sans-serif;}
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>WOL System</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+/* Full-width input fields */
+input[type=text], input[type=password] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+/* Set a style for all buttons */
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
 
-      To begin the development, run `npm start`.
-      To create a production bundle, use `npm run build`.
-    -->
-  </body>
+button:hover {
+  opacity: 0.8;
+}
+
+/* Extra styles for the cancel button */
+.cancelbtn {
+  width: auto;
+  padding: 10px 18px;
+  background-color: #f44336;
+}
+
+/* Center the image and position the close button */
+.imgcontainer {
+  text-align: center;
+  margin: 24px 0 12px 0;
+  position: relative;
+}
+
+img.avatar {
+  width: 40%;
+  border-radius: 50%;
+}
+
+.container {
+  padding: 16px;
+}
+
+span.psw {
+  float: right;
+  padding-top: 16px;
+}
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  padding-top: 60px;
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 5% auto 15% auto; /* 5% from the top, 15% from the bottom and centered */
+  border: 1px solid #888;
+  max-width: 500px; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button (x) */
+.close {
+  position: absolute;
+  right: 25px;
+  top: 0;
+  color: #000;
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: red;
+  cursor: pointer;
+}
+
+/* Add Zoom Animation */
+.animate {
+  -webkit-animation: animatezoom 0.6s;
+  animation: animatezoom 0.6s
+}
+
+@-webkit-keyframes animatezoom {
+  from {-webkit-transform: scale(0)} 
+  to {-webkit-transform: scale(1)}
+}
+  
+@keyframes animatezoom {
+  from {transform: scale(0)} 
+  to {transform: scale(1)}
+}
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 300px) {
+  span.psw {
+     display: block;
+     float: none;
+  }
+  .cancelbtn {
+     width: 100%;
+  }
+}
+
+#wol-wrapper {
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10%;
+    border: 1px solid #222;
+    padding: 2rem;
+}
+
+</style>
+</head>
+<body>
+
+<div id="wol-wrapper">
+    <h2>Wake On Lan Tool</h2>
+
+    <p><b>Status: </b><span id="status">NA</span></p>
+    <p><b>Last Command Time: </b><span id="last_command_time">NA</span></p>
+    <p><b>Last Client Checking Time: </b><span id="last_client_checking_time">NA</span></p>
+    <p><b>Last Successfully Wakeup Time: </b><span id="last_wol_time">NA</span></p>
+    
+    <button onclick="document.getElementById('new-wol-modal').style.display='block'" style="width:auto;">Create WOL Command</button>
+</div>
+
+<div id="new-wol-modal" class="modal">
+  
+  <form id="wol-form" class="modal-content animate" action="/api/new_wol">
+    <div class="imgcontainer">
+      <span onclick="document.getElementById('new-wol-modal').style.display='none'" class="close" title="Close Modal">&times;</span>
+    </div>
+
+    <div class="container">
+      <label for="password"><b>Password</b></label>
+      <input id="password" type="password" placeholder="Enter Password" name="password" required>
+        
+      <button type="submit">Send WakeOnLan</button>
+    </div>
+
+    <div class="container" style="background-color:#f1f1f1">
+      <button type="button" onclick="document.getElementById('new-wol-modal').style.display='none'" class="cancelbtn">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<script
+  src="javascripts/jquery.min.js"></script>
+
+<script>
+
+  // Create Interval to update info
+  setInterval(function() {
+
+    // WOL status
+    $.get( "/api/status", function( data ) {
+      if (data.status == true) {
+        $("#status").html("<span style='color: green'>Sending WOL command</span>");
+      } else {
+        $("#status").html("<span style='color: red'>Waiting for command</span>");
+      }
+
+      if (data.last_command_time != null) {
+        $("#last_command_time").html(data.last_command_time);
+      } else {
+        $("#last_command_time").text("N/A");
+      }
+
+      if (data.last_wol_time != null) {
+        $("#last_wol_time").html(data.last_wol_time);
+      } else {
+        $("#last_wol_time").text("N/A");
+      }
+
+      if (data.last_client_checking_time != null) {
+        $("#last_client_checking_time").html(data.last_client_checking_time);
+      } else {
+        $("#last_client_checking_time").text("N/A");
+      }
+    });
+
+  }, 1500);
+
+
+  // Handle from submit
+
+  $("#wol-form").submit(function(e) {
+    e.preventDefault();
+    $.ajax({
+      type: "POST",
+      url: "/api/new_wol",
+      contentType: 'application/json', 
+      data: JSON.stringify({"password": $("#password").val()}),
+      success: function(data) {
+        if (data.success != true) {
+          alert(data.message);
+        }
+        $("#new-wol-modal").hide();
+      },
+      error: function(e) {
+        alert(e);
+        $("#new-wol-modal").hide();
+      }
+    });
+  });
+
+  
+
+</script>
+
+</body>
 </html>
