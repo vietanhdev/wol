@@ -2,7 +2,7 @@
 
 This solution uses 1 Arduino Nano board with an ethernet module enc28j60 to check the remote WOL signal from internet and wakeup your PC.
 
-[Arduino Nano board with an ethernet module enc28j6](images/image1.jpg)
+![Arduino Nano board with an ethernet module enc28j6](images/image1.jpg)
 
 ## Why this solution?
 
